@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSU Voice - Admin Management Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font (Kanit) -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Kanit', 'sans-serif'],
+                    },
+                    colors: {
+                        psu: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#005691', // PSU Blue Tone
+                            600: '#004373',
+                            700: '#003256',
+                            800: '#00233e',
+                            900: '#001426',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- Admin Header / Navbar -->
+    <header class="bg-psu-900 text-white sticky top-0 z-30 shadow-lg border-b border-psu-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <!-- Brand Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shadow">
+                        <i class="fa-solid fa-user-shield text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="text-base sm:text-lg font-bold leading-tight">PSU Voice Admin Portal</h1>
+                            <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full font-semibold">แผงควบคุมเจ้าหน้าที่</span>
+                        </div>
+                        <p class="text-xs text-sky-200 hidden sm:block">ระบบอัปเดตสถานะ แนบภาพผลการดำเนินงาน และจัดการเรื่องร้องเรียน</p>
+                    </div>
+                </div>
+                
+                <!-- Admin Actions Header -->
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <!-- Public Portal Link -->
+                    <a href="index.html" class="inline-flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium transition border border-slate-700">
+                        <i class="fa-solid fa-globe text-sky-400"></i>
+                        <span class="hidden md:inline">ดูมุมมองประชาชน/คนทั่วไป</span>
+                        <span class="md:hidden">หน้าประชาชน</span>
+                    </a>
+
+                    <!-- Admin Logout Button -->
+                    <button onclick="adminLogout()" class="inline-flex items-center space-x-1.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold px-3 py-1.5 rounded-xl text-xs sm:text-sm transition shadow">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span class="hidden sm:inline">ออกจากระบบแอดมิน</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Admin Status Banner Indicator -->
+    <div class="bg-emerald-900 text-emerald-100 py-2.5 px-4 shadow-inner text-xs border-b border-emerald-800">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="font-bold text-white">โหมดจัดการเจ้าหน้าที่ทำงานอยู่ (Admin Mode Active)</span>
+                <span class="hidden md:inline text-emerald-200">- คุณได้รับสิทธิ์เต็มในการอัปเดตสถานะ แนบรูปภาพ After และเพิ่ม/ลบรายการเรื่องร้องเรียน</span>
+            </div>
+            <button onclick="openAddTestModal()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-medium transition flex items-center space-x-1 shadow-sm">
+                <i class="fa-solid fa-plus text-amber-300"></i>
+                <span>เพิ่มเรื่องร้องเรียน (สำหรับทดสอบ)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Dashboard Statistics -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-lg shrink-0">
+                    <i class="fa-solid fa-inbox"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">เรื่องทั้งหมด</p>
+                    <p id="statTotal" class="text-xl font-bold text-slate-800">0</p>
+                </div>
+            </div>
+            
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">รอดำเนินการ</p>
+                    <p id="statPending" class="text-xl font-bold text-amber-600">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                <div class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg shrink-0">
+                    <i class="fa-solid fa-spinner"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">กำลังดำเนินการ</p>
+                    <p id="statInProgress" class="text-xl font-bold text-sky-600">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500 font-medium">แก้ไขเรียบร้อย</p>
+                    <p id="statResolved" class="text-xl font-bold text-emerald-600">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Controls & View Selector -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6 space-y-3">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="flex flex-col sm:flex-row gap-3 flex-1">
+                    <!-- Search Input -->
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="searchInput" oninput="applyFilters()" placeholder="ค้นหารหัสเรื่อง, หัวข้อปัญหา, ผู้แจ้ง..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-psu-500/20 focus:border-psu-500">
+                    </div>
+                    <!-- Status Filter -->
+                    <select id="filterStatus" onchange="applyFilters()" class="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-psu-500/20 focus:border-psu-500">
+                        <option value="all">ทุกสถานะ</option>
+                        <option value="รอดำเนินการ">รอดำเนินการ</option>
+                        <option value="กำลังดำเนินการ">กำลังดำเนินการ</option>
+                        <option value="แก้ไขแล้ว">แก้ไขแล้ว</option>
+                        <option value="ยกเลิก">ยกเลิก/ไม่อนุมัติ</option>
+                    </select>
+                    <!-- Category Filter -->
+                    <select id="filterCategory" onchange="applyFilters()" class="border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-psu-500/20 focus:border-psu-500">
+                        <option value="all">ทุกหมวดหมู่</option>
+                        <option value="อาคารและสถานที่">อาคารและสถานที่</option>
+                        <option value="ระบบเครือข่าย/ไอที">ระบบเครือข่าย/ไอที</option>
+                        <option value="การเรียนการสอน/วิชาการ">การเรียนการสอน/วิชาการ</option>
+                        <option value="สวัสดิการ/หอพัก">สวัสดิการ/หอพัก</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                    </select>
+                </div>
+
+                <!-- Display Mode Toggle & Reset Filter -->
+                <div class="flex items-center justify-between sm:justify-end space-x-2 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+                    <div class="bg-slate-100 p-1 rounded-xl flex items-center space-x-1">
+                        <button id="viewGridBtn" onclick="setViewMode('grid')" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-white text-psu-700 shadow-sm transition">
+                            <i class="fa-solid fa-border-all"></i> Card
+                        </button>
+                        <button id="viewTableBtn" onclick="setViewMode('table')" class="px-2.5 py-1 text-xs font-semibold text-slate-500 rounded-lg hover:text-slate-800 transition">
+                            <i class="fa-solid fa-list-check"></i> Table
+                        </button>
+                    </div>
+
+                    <button onclick="resetFilters()" class="text-slate-500 hover:text-slate-700 text-xs font-medium px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition flex items-center space-x-1">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>รีเซ็ต</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Container for Card View -->
+        <div id="complaintGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards injected via JavaScript -->
+        </div>
+
+        <!-- Container for Table View -->
+        <div id="complaintTableContainer" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left text-xs sm:text-sm">
+                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 uppercase text-[11px] tracking-wider">
+                        <tr>
+                            <th class="py-3.5 px-4">รหัส / ผู้แจ้ง</th>
+                            <th class="py-3.5 px-4">หัวข้อปัญหา</th>
+                            <th class="py-3.5 px-4">หมวดหมู่</th>
+                            <th class="py-3.5 px-4">ความสำคัญ</th>
+                            <th class="py-3.5 px-4">สถานะ</th>
+                            <th class="py-3.5 px-4 text-center">เครื่องมือแอดมิน</th>
+                        </tr>
+                    </thead>
+                    <tbody id="complaintTableBody" class="divide-y divide-slate-100">
+                        <!-- Table rows injected via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Empty State Message -->
+        <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
+                <i class="fa-regular fa-folder-open"></i>
+            </div>
+            <h3 class="text-base font-semibold text-slate-700">ไม่พบรายการเรื่องร้องเรียน</h3>
+            <p class="text-sm text-slate-500 mt-1">ลองปรับเปลี่ยนตัวกรอง หรือค้นหาด้วยคีย์เวิร์ดอื่น</p>
+        </div>
+    </main>
+
+    <!-- Modal: Passcode Gate if not logged in -->
+    <div id="adminGateModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="p-5 bg-psu-900 text-white flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-lock text-amber-400 text-lg"></i>
+                    <h3 class="font-bold text-base">เข้าสู่ระบบเจ้าหน้าที่ (Admin Auth)</h3>
+                </div>
+            </div>
+            <form onsubmit="handleGateSubmit(event)" class="p-6 space-y-4">
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start space-x-2">
+                    <i class="fa-solid fa-shield text-amber-600 mt-0.5 shrink-0"></i>
+                    <div>
+                        <p class="font-bold">กรุณากรอกรหัสผ่านเจ้าหน้าที่เพื่อเข้าใช้งานหน้าจัดการ</p>
+                        <p class="text-[11px] text-amber-700">รหัสผ่านเริ่มต้น: <span class="font-mono font-bold text-amber-900">admin1234</span></p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">รหัสผ่านแอดมิน <span class="text-red-500">*</span></label>
+                    <input type="password" id="gatePasswordInput" required placeholder="กรอกรหัสผ่านแอดมิน" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-psu-500/20 focus:border-psu-500">
+                </div>
+
+                <div class="pt-2 flex justify-between items-center">
+                    <a href="index.html" class="text-xs text-slate-500 hover:text-slate-700 underline">กลับไปหน้าประชาชน</a>
+                    <button type="submit" class="px-5 py-2 bg-psu-600 hover:bg-psu-700 text-white text-xs font-semibold rounded-xl shadow">เข้าสู่ระบบแอดมิน</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Update Status & Resolution (Admin) -->
+    <div id="updateModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex justify-between items-center bg-psu-50">
+                <h3 class="font-bold text-psu-800 flex items-center space-x-2">
+                    <i class="fa-solid fa-sliders text-psu-600"></i>
+                    <span>อัปเดตสถานะและผลการแก้ไขปัญหา</span>
+                </h3>
+                <button onclick="closeUpdateModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="updateForm" onsubmit="handleUpdateSubmit(event)" class="p-4 sm:p-6 overflow-y-auto custom-scrollbar space-y-4">
+                <input type="hidden" id="updateTicketId">
+
+                <!-- Ticket Reference -->
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <p class="text-[10px] uppercase font-bold text-slate-400">อัปเดตเรื่องร้องเรียนรหัส</p>
+                    <p id="updateTicketTitle" class="text-xs sm:text-sm font-semibold text-slate-800 truncate"></p>
+                </div>
+
+                <!-- Status Selector -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">สถานะใหม่ <span class="text-red-500">*</span></label>
+                    <select id="updateStatusSelect" required class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-psu-500/20 focus:border-psu-500">
+                        <option value="รอดำเนินการ">รอดำเนินการ (Pending)</option>
+                        <option value="กำลังดำเนินการ">กำลังดำเนินการ (In Progress)</option>
+                        <option value="แก้ไขแล้ว">แก้ไขเรียบร้อยแล้ว (Resolved)</option>
+                        <option value="ยกเลิก">ยกเลิก / ไม่อนุมัติ (Cancelled)</option>
+                    </select>
+                </div>
+
+                <!-- Admin Resolution Note -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">คำอธิบาย/ผลการดำเนินงานจากเจ้าหน้าที่</label>
+                    <textarea id="updateNoteInput" rows="3" placeholder="ระบุการดำเนินงานแก้ไข หรือรายละเอียดชี้แจงจากเจ้าหน้าที่..." class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-psu-500/20 focus:border-psu-500"></textarea>
+                </div>
+
+                <!-- Image Upload (After Fix) -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">แนบรูปภาพผลการแก้ไข (รูปหลังแก้ไข / After)</label>
+                    <div class="mt-1 border-2 border-dashed border-slate-200 hover:border-psu-500 rounded-xl p-4 text-center transition cursor-pointer bg-slate-50/50" onclick="document.getElementById('updateImageInput').click()">
+                        <input type="file" id="updateImageInput" accept="image/*" class="hidden" onchange="previewUpdateImage(event)">
+                        <div id="updateImagePlaceholder" class="space-y-1">
+                            <i class="fa-solid fa-camera-retro text-2xl text-slate-400"></i>
+                            <p class="text-xs text-slate-600 font-medium">คลิกอัปโหลดภาพหลังแก้ไข</p>
+                            <p class="text-[10px] text-slate-400">รองรับไฟล์ PNG, JPG (แนะนำ &lt; 2MB)</p>
+                        </div>
+                        <div id="updateImagePreviewContainer" class="hidden relative inline-block">
+                            <img id="updateImagePreview" class="max-h-40 rounded-lg object-cover shadow border border-slate-200" alt="Preview">
+                            <button type="button" onclick="removeUpdateImage(event)" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="pt-3 flex justify-end space-x-3 border-t border-slate-100">
+                    <button type="button" onclick="closeUpdateModal()" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-medium rounded-xl hover:bg-slate-50">ยกเลิก</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow">บันทึกการอัปเดต</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: View Detail -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div class="flex items-center space-x-2">
+                    <span id="detailPriorityBadge"></span>
+                    <span id="detailStatusBadge"></span>
+                </div>
+                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="p-4 sm:p-6 overflow-y-auto custom-scrollbar space-y-5">
+                <div>
+                    <div class="flex items-center justify-between">
+                        <span id="detailCategory" class="text-xs font-semibold text-psu-600 bg-psu-50 px-2.5 py-1 rounded-md"></span>
+                        <span id="detailId" class="text-xs font-mono text-slate-400"></span>
+                    </div>
+                    <h2 id="detailTitle" class="text-lg font-bold text-slate-800 mt-2"></h2>
+                    <p id="detailReporter" class="text-xs text-slate-500 mt-1 flex items-center space-x-2">
+                        <span><i class="fa-regular fa-user mr-1"></i><span id="detailReporterName"></span></span>
+                        <span>•</span>
+                        <span><i class="fa-regular fa-clock mr-1"></i><span id="detailDate"></span></span>
+                    </p>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">รายละเอียดปัญหาที่แจ้ง</h4>
+                    <p id="detailDescription" class="text-xs sm:text-sm text-slate-700 whitespace-pre-line leading-relaxed"></p>
+                </div>
+
+                <!-- Before and After Images comparison -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">หลักฐานภาพประกอบ (Before / After)</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Before Image -->
+                        <div class="border border-slate-200 rounded-xl p-2 bg-white">
+                            <span class="inline-block text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded mb-2">ภาพปัญหาจากผู้แจ้ง (Before)</span>
+                            <div class="aspect-video bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center">
+                                <img id="detailImageBefore" class="w-full h-full object-cover hidden" alt="Before">
+                                <span id="detailImageBeforeNone" class="text-xs text-slate-400">ไม่มีรูปภาพแนบ</span>
+                            </div>
+                        </div>
+                        <!-- After Image -->
+                        <div class="border border-slate-200 rounded-xl p-2 bg-white">
+                            <span class="inline-block text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded mb-2">ภาพหลังแก้ไขโดยเจ้าหน้าที่ (After)</span>
+                            <div class="aspect-video bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center">
+                                <img id="detailImageAfter" class="w-full h-full object-cover hidden" alt="After">
+                                <span id="detailImageAfterNone" class="text-xs text-slate-400">ยังไม่มีรูปผลการแก้ไข</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Update Note Log -->
+                <div id="detailNoteSection" class="hidden bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
+                    <h4 class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1">ผลการดำเนินงานจากเจ้าหน้าที่</h4>
+                    <p id="detailNote" class="text-xs sm:text-sm text-emerald-900 leading-relaxed"></p>
+                    <span id="detailUpdatedDate" class="text-[10px] text-emerald-600 block mt-2"></span>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
+                <button onclick="openUpdateModalFromDetail()" class="px-4 py-2 bg-psu-600 hover:bg-psu-700 text-white text-xs font-semibold rounded-xl transition flex items-center space-x-1.5">
+                    <i class="fa-solid fa-pen"></i>
+                    <span>อัปเดตสถานะเรื่องนี้</span>
+                </button>
+                <button onclick="closeDetailModal()" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-medium rounded-xl hover:bg-slate-100">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Test Ticket -->
+    <div id="addTestModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center space-x-2">
+                    <i class="fa-solid fa-plus-circle text-psu-600"></i>
+                    <span>เพิ่มข้อมูลเรื่องร้องเรียนเข้าระบบ (สำหรับทดสอบ)</span>
+                </h3>
+                <button onclick="closeAddTestModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleAddTestSubmit(event)" class="p-4 sm:p-6 overflow-y-auto custom-scrollbar space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">ชื่อผู้แจ้ง <span class="text-red-500">*</span></label>
+                    <input type="text" id="addReporter" required placeholder="เช่น นายสมชาย PSU" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-psu-500/20 focus:border-psu-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">หัวข้อเรื่องร้องเรียน <span class="text-red-500">*</span></label>
+                    <input type="text" id="addTitle" required placeholder="เช่น ไฟส่องสว่างทางเดินอาคาร 3 เสีย" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-psu-500/20 focus:border-psu-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">หมวดหมู่</label>
+                        <select id="addCategory" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-psu-500/20 focus:border-psu-500">
+                            <option value="อาคารและสถานที่">อาคารและสถานที่</option>
+                            <option value="ระบบเครือข่าย/ไอที">ระบบเครือข่าย/ไอที</option>
+                            <option value="การเรียนการสอน/วิชาการ">การเรียนการสอน/วิชาการ</option>
+                            <option value="สวัสดิการ/หอพัก">สวัสดิการ/หอพัก</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">ระดับความสำคัญ</label>
+                        <select id="addPriority" class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-psu-500/20 focus:border-psu-500">
+                            <option value="ปกติ">ปกติ</option>
+                            <option value="ด่วน">ด่วน</option>
+                            <option value="ด่วนที่สุด">ด่วนที่สุด</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">รายละเอียด</label>
+                    <textarea id="addDetail" rows="3" placeholder="ระบุรายละเอียดปัญหา..." class="w-full px-3.5 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-psu-500/20 focus:border-psu-500"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">แนบภาพถ่ายก่อนแก้ไข (Before)</label>
+                    <input type="file" id="addBeforeImageInput" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-psu-50 file:text-psu-700 hover:file:bg-psu-100">
+                </div>
+
+                <div class="pt-2 flex justify-end space-x-2 border-t border-slate-100">
+                    <button type="button" onclick="closeAddTestModal()" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-medium rounded-xl">ยกเลิก</button>
+                    <button type="submit" class="px-5 py-2 bg-psu-600 text-white text-xs font-semibold rounded-xl shadow hover:bg-psu-700">บันทึกเพิ่มเรื่อง</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 ease-out pointer-events-none">
+        <div class="bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center space-x-3 text-sm">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+            <span id="toastMessage">บันทึกเรียบร้อย</span>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'psu_voice_admin_complaints_v2';
+        const AUTH_KEY = 'psu_voice_is_admin_logged_in';
+
+        // Initial Sample Data
+        const DUMMY_DATA = [
+            {
+                id: 'PSU-8801',
+                reporter: 'นักศึกษา ม.สงขลานครินทร์',
+                title: 'อินเทอร์เน็ต WiFi ในหอพักนักศึกษาหญิง สัญญาณหลุดบ่อย',
+                category: 'ระบบเครือข่าย/ไอที',
+                priority: 'ด่วนที่สุด',
+                detail: 'สัญญาณ PSU WiFi หลุดบ่อยมากในช่วงเวลา 19.00 - 22.00 น. ไม่สามารถเรียนหรือส่งงานออนไลน์ได้เลยครับ',
+                status: 'กำลังดำเนินการ',
+                createdAt: '2026-09-26 18:30',
+                imageUrl: 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=600&q=80',
+                resolvedImageUrl: '',
+                resolutionNote: 'ทีมสำนักคอมพิวเตอร์เข้าตรวจสอบและพบปัญหาสวิตช์เครือข่ายขัดข้อง ขณะนี้กำลังดำเนินการเปลี่ยนอุปกรณ์ตัวใหม่',
+                updatedAt: '2026-09-27 10:15'
+            },
+            {
+                id: 'PSU-8802',
+                reporter: 'นายอนันต์ ชัยเจริญ',
+                title: 'เครื่องปรับอากาศในห้องปฏิบัติการคอมพิวเตอร์ 2 มีน้ำหยดลงพื้น',
+                category: 'อาคารและสถานที่',
+                priority: 'ด่วน',
+                detail: 'แอร์ตัวกลางห้องแอร์ตัดบ่อยและมีน้ำหยดลงบนโต๊ะคอมพิวเตอร์ เกรงว่าจะเกิดไฟฟ้าลัดวงจร',
+                status: 'แก้ไขแล้ว',
+                createdAt: '2026-09-24 11:20',
+                imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=600&q=80',
+                resolvedImageUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
+                resolutionNote: 'เจ้าหน้าที่หมวดอาคารเข้าล้างท่อน้ำทิ้งแอร์และเปลี่ยนซีลยางกันรั่วเรียบร้อยแล้ว ทดสอบการใช้งานปกติ',
+                updatedAt: '2026-09-25 15:40'
+            },
+            {
+                id: 'PSU-8803',
+                reporter: 'นางสาวศิริพร บุญมี',
+                title: 'เสนอแนะเพิ่มไฟส่องสว่างบริเวณทางเดินหลังโรงอาหารกลาง',
+                category: 'อาคารและสถานที่',
+                priority: 'ปกติ',
+                detail: 'ทางเดินช่วงค่ำค่อนข้างมืด อยากให้ช่วยเพิ่มหลอดไฟส่องสว่างเพื่อความปลอดภัยของนักศึกษาที่เดินกลับหอพัก',
+                status: 'รอดำเนินการ',
+                createdAt: '2026-09-27 20:05',
+                imageUrl: '',
+                resolvedImageUrl: '',
+                resolutionNote: '',
+                updatedAt: ''
+            }
+        ];
+
+        // Global States
+        let complaints = [];
+        let currentViewMode = 'grid';
+        let tempUpdateBase64Image = '';
+        let activeSelectedTicketId = null;
+
+        window.onload = function() {
+            checkAuthGate();
+            loadComplaints();
+            renderDashboard();
+        };
+
+        function checkAuthGate() {
+            const isLoggedIn = localStorage.getItem(AUTH_KEY) === 'true';
+            if (!isLoggedIn) {
+                document.getElementById('adminGateModal').classList.remove('hidden');
+            } else {
+                document.getElementById('adminGateModal').classList.add('hidden');
+            }
+        }
+
+        function handleGateSubmit(e) {
+            e.preventDefault();
+            const pass = document.getElementById('gatePasswordInput').value;
+            if (pass === 'admin1234') {
+                localStorage.setItem(AUTH_KEY, 'true');
+                document.getElementById('adminGateModal').classList.add('hidden');
+                showToast('เข้าสู่ระบบเจ้าหน้าที่สำเร็จ');
+            } else {
+                alert('รหัสผ่านแอดมินไม่ถูกต้อง!');
+            }
+        }
+
+        function adminLogout() {
+            localStorage.setItem(AUTH_KEY, 'false');
+            window.location.href = 'index.html';
+        }
+
+        function loadComplaints() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    complaints = JSON.parse(stored);
+                } catch(e) {
+                    complaints = [...DUMMY_DATA];
+                    saveComplaints();
+                }
+            } else {
+                complaints = [...DUMMY_DATA];
+                saveComplaints();
+            }
+        }
+
+        function saveComplaints() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(complaints));
+        }
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            const gridBtn = document.getElementById('viewGridBtn');
+            const tableBtn = document.getElementById('viewTableBtn');
+
+            if (mode === 'grid') {
+                gridBtn.className = "px-2.5 py-1 text-xs font-semibold rounded-lg bg-white text-psu-700 shadow-sm transition";
+                tableBtn.className = "px-2.5 py-1 text-xs font-semibold text-slate-500 rounded-lg hover:text-slate-800 transition";
+                document.getElementById('complaintGrid').classList.remove('hidden');
+                document.getElementById('complaintTableContainer').classList.add('hidden');
+            } else {
+                tableBtn.className = "px-2.5 py-1 text-xs font-semibold rounded-lg bg-white text-psu-700 shadow-sm transition";
+                gridBtn.className = "px-2.5 py-1 text-xs font-semibold text-slate-500 rounded-lg hover:text-slate-800 transition";
+                document.getElementById('complaintGrid').classList.add('hidden');
+                document.getElementById('complaintTableContainer').classList.remove('hidden');
+            }
+            renderDashboard();
+        }
+
+        function filterData() {
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+            const statusFilter = document.getElementById('filterStatus').value;
+            const categoryFilter = document.getElementById('filterCategory').value;
+
+            return complaints.filter(item => {
+                const matchesSearch = item.title.toLowerCase().includes(search) || 
+                                      item.detail.toLowerCase().includes(search) || 
+                                      item.id.toLowerCase().includes(search) ||
+                                      (item.reporter && item.reporter.toLowerCase().includes(search));
+                const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+                const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+
+                return matchesSearch && matchesStatus && matchesCategory;
+            });
+        }
+
+        function applyFilters() {
+            renderDashboard();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterStatus').value = 'all';
+            document.getElementById('filterCategory').value = 'all';
+            renderDashboard();
+        }
+
+        function updateStatistics() {
+            document.getElementById('statTotal').innerText = complaints.length;
+            document.getElementById('statPending').innerText = complaints.filter(c => c.status === 'รอดำเนินการ').length;
+            document.getElementById('statInProgress').innerText = complaints.filter(c => c.status === 'กำลังดำเนินการ').length;
+            document.getElementById('statResolved').innerText = complaints.filter(c => c.status === 'แก้ไขแล้ว').length;
+        }
+
+        function renderDashboard() {
+            const filtered = filterData();
+            const emptyState = document.getElementById('emptyState');
+            
+            updateStatistics();
+
+            if (filtered.length === 0) {
+                document.getElementById('complaintGrid').innerHTML = '';
+                document.getElementById('complaintTableBody').innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            if (currentViewMode === 'grid') {
+                document.getElementById('complaintGrid').innerHTML = filtered.map(item => createCardHTML(item)).join('');
+            } else {
+                document.getElementById('complaintTableBody').innerHTML = filtered.map(item => createTableRowHTML(item)).join('');
+            }
+        }
+
+        function getStatusBadge(status) {
+            const styles = {
+                'รอดำเนินการ': 'bg-amber-50 text-amber-700 border-amber-200',
+                'กำลังดำเนินการ': 'bg-sky-50 text-sky-700 border-sky-200',
+                'แก้ไขแล้ว': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                'ยกเลิก': 'bg-rose-50 text-rose-700 border-rose-200'
+            };
+            const icons = {
+                'รอดำเนินการ': 'fa-regular fa-clock',
+                'กำลังดำเนินการ': 'fa-solid fa-spinner fa-spin',
+                'แก้ไขแล้ว': 'fa-solid fa-circle-check',
+                'ยกเลิก': 'fa-solid fa-circle-xmark'
+            };
+            const style = styles[status] || 'bg-slate-50 text-slate-600 border-slate-200';
+            const icon = icons[status] || 'fa-solid fa-circle-info';
+
+            return `<span class="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${style}">
+                <i class="${icon} text-[10px]"></i>
+                <span>${status}</span>
+            </span>`;
+        }
+
+        function getPriorityBadge(priority) {
+            const styles = {
+                'ด่วนที่สุด': 'bg-red-50 text-red-700 border-red-200',
+                'ด่วน': 'bg-orange-50 text-orange-700 border-orange-200',
+                'ปกติ': 'bg-slate-100 text-slate-600 border-slate-200'
+            };
+            const style = styles[priority] || 'bg-slate-100 text-slate-600 border-slate-200';
+            return `<span class="px-2 py-0.5 rounded text-[10px] font-bold border ${style}">${priority || 'ปกติ'}</span>`;
+        }
+
+        function createCardHTML(item) {
+            const imageDisplay = item.resolvedImageUrl || item.imageUrl;
+            
+            return `
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden">
+                <div>
+                    <!-- Card Top Header -->
+                    <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <div class="flex items-center space-x-2">
+                            ${getPriorityBadge(item.priority)}
+                            <span class="text-xs font-mono font-semibold text-slate-400">${item.id}</span>
+                        </div>
+                        ${getStatusBadge(item.status)}
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-semibold text-psu-600 bg-psu-50 px-2 py-0.5 rounded-md">${item.category}</span>
+                            <span class="text-[11px] text-slate-400"><i class="fa-regular fa-clock mr-1"></i>${item.createdAt}</span>
+                        </div>
+
+                        <h3 class="text-sm font-bold text-slate-800 line-clamp-2 leading-snug cursor-pointer hover:text-psu-600 transition" onclick="openDetailModal('${item.id}')">
+                            ${item.title}
+                        </h3>
+
+                        <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                            ${item.detail}
+                        </p>
+
+                        ${imageDisplay ? `
+                            <div class="relative h-32 rounded-xl overflow-hidden bg-slate-100 cursor-pointer" onclick="openDetailModal('${item.id}')">
+                                <img src="${imageDisplay}" alt="Thumbnail" class="w-full h-full object-cover">
+                                ${item.resolvedImageUrl ? '<span class="absolute bottom-2 right-2 bg-emerald-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-md shadow">ภาพหลังแก้ไข (After)</span>' : ''}
+                            </div>
+                        ` : ''}
+
+                        ${item.resolutionNote ? `
+                            <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-100 text-[11px] text-emerald-900 space-y-1">
+                                <p class="font-bold flex items-center space-x-1">
+                                    <i class="fa-solid fa-comment-dots text-emerald-600"></i>
+                                    <span>บันทึกโดยเจ้าหน้าที่:</span>
+                                </p>
+                                <p class="line-clamp-2">${item.resolutionNote}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- Card Footer Controls (Admin Tools) -->
+                <div class="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <div class="flex items-center space-x-1.5 text-slate-500 text-xs truncate">
+                        <i class="fa-regular fa-user text-slate-400 text-xs"></i>
+                        <span class="truncate">${item.reporter || 'ผู้แจ้งทั่วไป'}</span>
+                    </div>
+
+                    <div class="flex items-center space-x-1 shrink-0">
+                        <button onclick="openDetailModal('${item.id}')" class="px-2.5 py-1.5 text-xs font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition shadow-sm">
+                            <i class="fa-regular fa-eye mr-1"></i>ดู
+                        </button>
+                        <button onclick="openUpdateModal('${item.id}')" class="px-2.5 py-1.5 text-xs font-medium text-white bg-psu-600 hover:bg-psu-700 rounded-lg transition shadow-sm">
+                            <i class="fa-solid fa-pen mr-1"></i>อัปเดต
+                        </button>
+                        <button onclick="deleteComplaint('${item.id}')" title="ลบเรื่องร้องเรียน" class="px-2 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+
+        function createTableRowHTML(item) {
+            return `
+            <tr class="hover:bg-slate-50/80 transition">
+                <td class="py-3 px-4">
+                    <div class="font-mono font-bold text-slate-700 text-xs">${item.id}</div>
+                    <div class="text-[11px] text-slate-500">${item.reporter || 'ไม่ระบุชื่อ'}</div>
+                </td>
+                <td class="py-3 px-4">
+                    <div class="font-semibold text-slate-800 line-clamp-1 max-w-xs cursor-pointer hover:text-psu-600" onclick="openDetailModal('${item.id}')">${item.title}</div>
+                    <div class="text-[10px] text-slate-400"><i class="fa-regular fa-clock mr-1"></i>${item.createdAt}</div>
+                </td>
+                <td class="py-3 px-4">
+                    <span class="text-xs font-medium text-psu-600 bg-psu-50 px-2 py-0.5 rounded-md">${item.category}</span>
+                </td>
+                <td class="py-3 px-4">
+                    ${getPriorityBadge(item.priority)}
+                </td>
+                <td class="py-3 px-4">
+                    ${getStatusBadge(item.status)}
+                </td>
+                <td class="py-3 px-4 text-center">
+                    <div class="flex items-center justify-center space-x-1.5">
+                        <button onclick="openDetailModal('${item.id}')" class="px-2.5 py-1 text-xs font-medium text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition shadow-sm">
+                            <i class="fa-regular fa-eye mr-1"></i>ดู
+                        </button>
+                        <button onclick="openUpdateModal('${item.id}')" class="px-2.5 py-1 text-xs font-medium text-white bg-psu-600 hover:bg-psu-700 rounded-lg transition shadow-sm">
+                            <i class="fa-solid fa-pen mr-1"></i>อัปเดต
+                        </button>
+                        <button onclick="deleteComplaint('${item.id}')" title="ลบเรื่องร้องเรียน" class="px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg transition">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            `;
+        }
+
+        function openDetailModal(id) {
+            const item = complaints.find(c => c.id === id);
+            if (!item) return;
+
+            activeSelectedTicketId = id;
+
+            document.getElementById('detailPriorityBadge').innerHTML = getPriorityBadge(item.priority);
+            document.getElementById('detailStatusBadge').innerHTML = getStatusBadge(item.status);
+            document.getElementById('detailCategory').innerText = item.category;
+            document.getElementById('detailId').innerText = item.id;
+            document.getElementById('detailTitle').innerText = item.title;
+            document.getElementById('detailReporterName').innerText = item.reporter || 'ผู้แจ้งทั่วไป';
+            document.getElementById('detailDate').innerText = item.createdAt;
+            document.getElementById('detailDescription').innerText = item.detail || 'ไม่มีรายละเอียดเพิ่มเติม';
+
+            // Before Image
+            const imgBefore = document.getElementById('detailImageBefore');
+            const imgBeforeNone = document.getElementById('detailImageBeforeNone');
+            if (item.imageUrl) {
+                imgBefore.src = item.imageUrl;
+                imgBefore.classList.remove('hidden');
+                imgBeforeNone.classList.add('hidden');
+            } else {
+                imgBefore.classList.add('hidden');
+                imgBeforeNone.classList.remove('hidden');
+            }
+
+            // After Image
+            const imgAfter = document.getElementById('detailImageAfter');
+            const imgAfterNone = document.getElementById('detailImageAfterNone');
+            if (item.resolvedImageUrl) {
+                imgAfter.src = item.resolvedImageUrl;
+                imgAfter.classList.remove('hidden');
+                imgAfterNone.classList.add('hidden');
+            } else {
+                imgAfter.classList.add('hidden');
+                imgAfterNone.classList.remove('hidden');
+            }
+
+            // Resolution note log
+            const noteSec = document.getElementById('detailNoteSection');
+            if (item.resolutionNote) {
+                document.getElementById('detailNote').innerText = item.resolutionNote;
+                document.getElementById('detailUpdatedDate').innerText = item.updatedAt ? `อัปเดตเมื่อ: ${item.updatedAt}` : '';
+                noteSec.classList.remove('hidden');
+            } else {
+                noteSec.classList.add('hidden');
+            }
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        function openUpdateModalFromDetail() {
+            closeDetailModal();
+            if (activeSelectedTicketId) {
+                openUpdateModal(activeSelectedTicketId);
+            }
+        }
+
+        function openUpdateModal(id) {
+            const item = complaints.find(c => c.id === id);
+            if (!item) return;
+
+            document.getElementById('updateTicketId').value = item.id;
+            document.getElementById('updateTicketTitle').innerText = `${item.id}: ${item.title}`;
+            document.getElementById('updateStatusSelect').value = item.status;
+            document.getElementById('updateNoteInput').value = item.resolutionNote || '';
+
+            // Reset temp image preview
+            tempUpdateBase64Image = item.resolvedImageUrl || '';
+            const preview = document.getElementById('updateImagePreview');
+            const previewContainer = document.getElementById('updateImagePreviewContainer');
+            const placeholder = document.getElementById('updateImagePlaceholder');
+
+            if (tempUpdateBase64Image) {
+                preview.src = tempUpdateBase64Image;
+                previewContainer.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            } else {
+                preview.src = '';
+                previewContainer.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+            }
+
+            document.getElementById('updateModal').classList.remove('hidden');
+        }
+
+        function closeUpdateModal() {
+            document.getElementById('updateModal').classList.add('hidden');
+            tempUpdateBase64Image = '';
+        }
+
+        function previewUpdateImage(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    tempUpdateBase64Image = evt.target.result;
+                    const preview = document.getElementById('updateImagePreview');
+                    preview.src = tempUpdateBase64Image;
+                    document.getElementById('updateImagePreviewContainer').classList.remove('hidden');
+                    document.getElementById('updateImagePlaceholder').classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeUpdateImage(e) {
+            e.stopPropagation();
+            tempUpdateBase64Image = '';
+            document.getElementById('updateImageInput').value = '';
+            document.getElementById('updateImagePreview').src = '';
+            document.getElementById('updateImagePreviewContainer').classList.add('hidden');
+            document.getElementById('updateImagePlaceholder').classList.remove('hidden');
+        }
+
+        function handleUpdateSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('updateTicketId').value;
+            const newStatus = document.getElementById('updateStatusSelect').value;
+            const note = document.getElementById('updateNoteInput').value.trim();
+
+            const idx = complaints.findIndex(c => c.id === id);
+            if (idx !== -1) {
+                const now = new Date();
+                const formattedDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+                complaints[idx].status = newStatus;
+                complaints[idx].resolutionNote = note;
+                complaints[idx].updatedAt = formattedDate;
+                if (tempUpdateBase64Image) {
+                    complaints[idx].resolvedImageUrl = tempUpdateBase64Image;
+                }
+
+                saveComplaints();
+                renderDashboard();
+                closeUpdateModal();
+                showToast('อัปเดตสถานะและข้อมูลสำเร็จ!');
+            }
+        }
+
+        function openAddTestModal() {
+            document.getElementById('addReporter').value = '';
+            document.getElementById('addTitle').value = '';
+            document.getElementById('addDetail').value = '';
+            document.getElementById('addBeforeImageInput').value = '';
+            document.getElementById('addTestModal').classList.remove('hidden');
+        }
+
+        function closeAddTestModal() {
+            document.getElementById('addTestModal').classList.add('hidden');
+        }
+
+        function handleAddTestSubmit(e) {
+            e.preventDefault();
+            const reporter = document.getElementById('addReporter').value.trim();
+            const title = document.getElementById('addTitle').value.trim();
+            const category = document.getElementById('addCategory').value;
+            const priority = document.getElementById('addPriority').value;
+            const detail = document.getElementById('addDetail').value.trim();
+            const fileInput = document.getElementById('addBeforeImageInput');
+
+            const nextNum = 8800 + complaints.length + 1;
+            const newId = `PSU-${nextNum}`;
+
+            const now = new Date();
+            const createdAt = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            const createNewTicket = (imageUrl) => {
+                const newTicket = {
+                    id: newId,
+                    reporter: reporter || 'ผู้แจ้งทั่วไป',
+                    title: title,
+                    category: category,
+                    priority: priority,
+                    detail: detail,
+                    status: 'รอดำเนินการ',
+                    createdAt: createdAt,
+                    imageUrl: imageUrl || '',
+                    resolvedImageUrl: '',
+                    resolutionNote: '',
+                    updatedAt: ''
+                };
+
+                complaints.unshift(newTicket);
+                saveComplaints();
+                renderDashboard();
+                closeAddTestModal();
+                showToast('เพิ่มเรื่องร้องเรียนทดสอบเรียบร้อยแล้ว');
+            };
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    createNewTicket(evt.target.result);
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                createNewTicket('');
+            }
+        }
+
+        function deleteComplaint(id) {
+            if (confirm(`คุณต้องการลบเรื่องร้องเรียนรหัส ${id} ใช่หรือไม่?`)) {
+                complaints = complaints.filter(c => c.id !== id);
+                saveComplaints();
+                renderDashboard();
+                showToast('ลบรายการเรื่องร้องเรียนสำเร็จ');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            toastMessage.innerText = message;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
